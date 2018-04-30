@@ -1,4 +1,3 @@
-#! usr/bin/env python3
 # -*- coding : utf-8 -*-
 
 """
@@ -162,10 +161,3 @@ class VidPrinter(ImgPrinter):
 
   def _clear_frame(self):
     sys.stdout.write(self._delstring)
-
-
-# if __name__ == '__main__':
-  # imprinter = ImgPrinter()
-  # imprinter('img/flower.jpg')
-  # vprinter = VidPrinter()
-  # vprinter('img/totoro.gif', max_width=1000)
