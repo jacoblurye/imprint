@@ -4,7 +4,6 @@
 """
 View images and video as printed text.
 """
-
 import numpy as np
 from skimage.transform import resize
 from skimage.io import imread
