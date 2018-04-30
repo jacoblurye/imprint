@@ -1,3 +1,0 @@
-numpy==1.14.3
-scikit-image==0.13.1
-scikit-video==1.1.10
