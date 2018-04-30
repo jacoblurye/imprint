@@ -43,6 +43,7 @@ class ImgPrinter:
       img : string or numpy.ndarray
         Either a path to an image file or a matrix representing image data.
       max_width : int
+        Restrict width of string representation to max_width characters.
 
       Returns
       -------
@@ -89,30 +90,59 @@ class ImgPrinter:
       thresh += self._inc
     return char
 
+
 CURSOR_UP_ONE_LINE= '\x1b[1A'
 class VidPrinter(ImgPrinter):
   """
     Implements an image-to-string converter for watching videos 
-    at the commandline.
+    at the command line.
   """
-  def str_to_vid(self, vid, max_width=200):
-    for frame in vid:
-      yield self.img_to_str(frame, max_width)
-  
   def __call__(self, vid, max_width=200, framerate=24):
+    """
+      Continuously print a video's string representation (i.e., watch it).
+      To obtain a generator producing string representations of the video's frames
+      directly, use vid_to_str.
+
+      Parameters
+      ----------
+      vid : string or numpy.ndarray
+        Either a path to a video file or a matrix representing video data.
+      max_width : int
+        Restrict width of string representation to max_width characters.
+
+      Returns
+      -------
+      None
+    """
+    # Get video metadata and load video if necessary
     if type(vid) == str:
       vinfo = ffprobe(vid)['video']
       height, width = int(vinfo['@height']), int(vinfo['@width'])
       vid = vreader(vid)
     else:
-      height, width = vid[0].shape[1]
-      height = vid[0].shape[0]
+      height, width =  vid[0].shape[0], vid[0].shape[1]
+
+    # Construct string used for clearing printed frames
     max_height = round(height * max_width / width)
     self._delstring = CURSOR_UP_ONE_LINE * max_height
+
+    # Make the video string generator
     vidstr_gen = self.str_to_vid(vid, max_width)
+
+    # Play back video to terminal
     self._play(vidstr_gen, framerate)
 
+  def str_to_vid(self, vid, max_width=200):
+    """
+      Generate string representations of a video, frame-by-frame.
+    """
+    for frame in vid:
+      yield self.img_to_str(frame, max_width)
+
   def _play(self, vidstr_gen, framerate):
+    """
+      Continuously print string representations of frames.
+    """
     for frame in vidstr_gen:
       print(frame)
       self._clear_frame()
