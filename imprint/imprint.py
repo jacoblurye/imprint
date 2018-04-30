@@ -3,7 +3,7 @@
 View images and video as printed text.
 """
 
-__version__ = "0.1.0"
+__version__ = '0.1.0'
 
 import sys
 import time
