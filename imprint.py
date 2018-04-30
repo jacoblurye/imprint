@@ -33,7 +33,7 @@ class ImgPrinter:
     self._inc = bitdepth / len(symbols)
     self._ptoc_vec = np.vectorize(self._pixel_to_char)
 
-  def __call__(self, img, max_width=200):
+  def __call__(self, img, max_width=150):
     """
       Print an image to the console. 
       To obtain a string representation directly, use img_to_str.
@@ -51,7 +51,7 @@ class ImgPrinter:
     """
     print(self.img_to_str(img, max_width))
 
-  def img_to_str(self, img, max_width=150):
+  def img_to_str(self, img, max_width=100):
     """
       Convert img into its string representation.
     """
@@ -153,4 +153,4 @@ class VidPrinter(ImgPrinter):
 
 if __name__ == '__main__':
   imprinter = ImgPrinter()
-  imprinter('img/flower.jpg', max_width=300)
+  imprinter('img/flower.jpg')
