@@ -1,3 +1,6 @@
+#! usr/bin/env python
+# -*- coding : utf-8 -*-
+
 """
 View images and video as printed text.
 """
