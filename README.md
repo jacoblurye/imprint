@@ -67,7 +67,11 @@ $ imprint --max_width=100 img/flower.jpg
                                             ·   ···           ·+::
 ```
 ### As A Module
-Interact directly with module definitions for use in other Python scripts. The module implements the `ImgPrinter` and `VidPrinter` classes for stringifying and displaying image and video files, respectively. For example:
+ The module implements the following classes:
+* `ImgPrinter`: for stringifying and displaying image files (excluding gifs).
+* `VidPrinter`: for stringifying and displaying video files (and gifs).
+
+Interact directly with module definitions for use in other Python scripts. For example:
 ```
 >>> from imprint import ImgPrinter
 >>> symbols = u' \u25A0'
