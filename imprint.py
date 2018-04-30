@@ -164,7 +164,7 @@ class VidPrinter(ImgPrinter):
     sys.stdout.write(self._delstring)
 
 
-if __name__ == '__main__':
+# if __name__ == '__main__':
   # imprinter = ImgPrinter()
   # imprinter('img/flower.jpg')
   # vprinter = VidPrinter()
