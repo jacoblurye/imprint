@@ -7,7 +7,7 @@ For example:
 ```
 >>> from imprint import ImgPrinter
 >>> imprinter = ImgPrinter()
->>> imprinter.print('img/flower.jpg')
+>>> imprinter('img/flower.jpg')
 
                                ····· ·   +*****· ·::::···:+:      ++++:·****:::+*+*+:+:::: +*++:+**+++++::******++
                               ·······   ·+*+*@@@:·:::::·::·+     :*+++·****:::::+**+++++++**+++***+++++********+*+
@@ -70,9 +70,9 @@ For example:
 You can change the size of the representation and the symbols you want to use. A smaller `max_width` produces a lower resolution of the image, and a smaller set of symbols reduces the representable bit depth (variations in light intensity) of the image:
 
 ```
->>> symbols = [u" ", u"~"]
+>>> symbols = u' ~'
 >>> imprinter = ImgPrinter(symbols)
->>> imprinter.print('img/flower.jpg', max_width=75)
+>>> imprinter('img/flower.jpg', max_width=75)
                      ~~~     ~   ~~ ~~  ~~~~~~~~~~~~~~~~~
                     ~~~~~~      ~~ ~~ ~~~~~~~~~~~~~~~~~~~
                ~~ ~ ~~~~~~~     ~~~~~~~~~~~~~~~~~~~~~~~~    ~~~
