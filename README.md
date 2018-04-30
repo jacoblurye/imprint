@@ -12,11 +12,10 @@ $ python setup.py install
 
 ## Usage
 ### As A CLI
-Call the `imprint` command on any supported image or video file format.
 ```
-$ imprint [options] file
+Usage: imprint [options] file
 ```
-So, to print any image or video file, simply invoke the `imprint` command as follows:
+Point the `imprint` command at any image or video file. For example:
 ```
 $ imprint --max_width=100 img/flower.jpg
                                            :+*:
@@ -68,7 +67,7 @@ $ imprint --max_width=100 img/flower.jpg
                                             ·   ···           ·+::
 ```
 ### As A Module
-Interact directly with module definitions for use in other Python scripts. For example:
+Interact directly with module definitions for use in other Python scripts. The module implements the `ImgPrinter` and `VidPrinter` classes for stringifying and displaying image and video files, respectively. For example:
 ```
 >>> from imprint import ImgPrinter
 >>> symbols = u' \u25A0'
