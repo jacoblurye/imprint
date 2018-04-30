@@ -1,8 +1,10 @@
 # -*- coding : utf-8 -*-
-
 """
 View images and video as printed text.
 """
+
+__version__ = "0.2.0"
+
 import sys
 import time
 import itertools

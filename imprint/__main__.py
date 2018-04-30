@@ -23,4 +23,4 @@ elif is_vid(args.file):
   vprint = VidPrinter()
   vprint(args.file, max_width=args.max_width, is_gif=args.is_gif)
 else:
-  raise Exception(args.file + ': file format not supported')
+  raise Exception('%s: file format not supported' % args.file)
