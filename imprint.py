@@ -1,30 +1,32 @@
-#! usr/bin/env python
+#! usr/bin/env python3
 # -*- coding : utf-8 -*-
 
 """
 View images and video as printed text.
 """
+import sys
+import time
+import itertools
+
 import numpy as np
 from skimage.transform import resize
 from skimage.io import imread
-from skvideo.io import vreader
+from skvideo.io import vreader, ffprobe
 
 
 class ImgPrinter:
   """
     Implements an image-to-string converter.
   """
-  def __init__(self, 
-               symbols=u' ·:+*@',
-               bitdepth=255):
+  def __init__(self, symbols=u' ·:+*@', bitdepth=255):
     """
       Initialize an image-printer.
 
       Parameters
       ----------
-      symbols : str or str list, default -> " ·:+*@"
+      symbols : str or str list
         String representations to use for pixels of increasing brightness.
-      bitdepth : int, default -> 255
+      bitdepth : int
         Bitdepth of the images this printer will consume.
     """
     self.symbols = symbols
@@ -87,7 +89,40 @@ class ImgPrinter:
       thresh += self._inc
     return char
 
+CURSOR_UP_ONE_LINE= '\x1b[1A'
+class VidPrinter(ImgPrinter):
+  """
+    Implements an image-to-string converter for watching videos 
+    at the commandline.
+  """
+  def str_to_vid(self, vid, max_width=200):
+    for frame in vid:
+      yield self.img_to_str(frame, max_width)
+  
+  def __call__(self, vid, max_width=200, max_frames=1000, framerate=24):
+    if type(vid) == str:
+      vinfo = ffprobe(vid)['video']
+      height, width = int(vinfo['@height']), int(vinfo['@width'])
+      vid = vreader(vid)
+    else:
+      height, width = vid[0].shape[1]
+      height = vid[0].shape[0]
+    max_height = round(height * max_width / width)
+    self._delstring = CURSOR_UP_ONE_LINE * max_height
+    vidstr_gen = self.str_to_vid(vid)
+    self._play(vidstr_gen, framerate)
+
+  def _play(self, vidstr_gen, framerate):
+    for frame in vidstr_gen:
+      print(frame)
+      self._clear_frame()
+
+  def _clear_frame(self):
+    sys.stdout.write(self._delstring)
+
 
 if __name__ == '__main__':
-  imprinter = ImgPrinter()
-  imprinter.print('img/k.jpg', max_width=600)
+  # imprinter = ImgPrinter()
+  # imprinter('img/flower.jpg', max_width=600)
+  vprinter = VidPrinter()
+  vprinter('local_img/scene1.mp4')

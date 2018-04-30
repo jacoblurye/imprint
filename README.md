@@ -1,6 +1,6 @@
 ## imprint
 
-Convert images (and, when I get around to it, videos) to string representations.
+Convert images and videos to string representations.
 
 For example:
 
