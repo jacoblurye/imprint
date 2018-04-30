@@ -92,12 +92,13 @@ class ImgPrinter:
 
 
 CURSOR_UP_ONE_LINE= '\x1b[1A'
+
 class VidPrinter(ImgPrinter):
   """
     Implements an image-to-string converter for watching videos 
     at the command line.
   """
-  def __call__(self, vid, max_width=200, framerate=24):
+  def __call__(self, vid, max_width=200, is_gif=False):
     """
       Continuously print a video's string representation (i.e., watch it).
       To obtain a generator producing string representations of the video's frames
@@ -109,6 +110,8 @@ class VidPrinter(ImgPrinter):
         Either a path to a video file or a matrix representing video data.
       max_width : int
         Restrict width of string representation to max_width characters.
+      is_gif : bool
+        If true, loop the video forever.
 
       Returns
       -------
@@ -118,6 +121,7 @@ class VidPrinter(ImgPrinter):
     if type(vid) == str:
       vinfo = ffprobe(vid)['video']
       height, width = int(vinfo['@height']), int(vinfo['@width'])
+      is_gif = vinfo['@codec_name'] == 'gif'
       vid = vreader(vid)
     else:
       height, width =  vid[0].shape[0], vid[0].shape[1]
@@ -127,19 +131,28 @@ class VidPrinter(ImgPrinter):
     self._delstring = CURSOR_UP_ONE_LINE * max_height
 
     # Make the video string generator
-    vidstr_gen = self.str_to_vid(vid, max_width)
+    vidstr_gen = self.str_to_vid(vid, max_width, is_gif)
 
     # Play back video to terminal
-    self._play(vidstr_gen, framerate)
+    self._play(vidstr_gen)
 
-  def str_to_vid(self, vid, max_width=200):
+  def str_to_vid(self, vid, max_width=200, is_gif=False):
     """
       Generate string representations of a video, frame-by-frame.
     """
+    framelist = []
     for frame in vid:
-      yield self.img_to_str(frame, max_width)
+      frame = self.img_to_str(frame, max_width)
+      if is_gif:
+        framelist.append(frame)
+      yield frame
 
-  def _play(self, vidstr_gen, framerate):
+    # Keep looping gifs forever
+    while is_gif:
+      for frame in framelist:
+        yield frame
+
+  def _play(self, vidstr_gen):
     """
       Continuously print string representations of frames.
     """
@@ -152,5 +165,7 @@ class VidPrinter(ImgPrinter):
 
 
 if __name__ == '__main__':
-  imprinter = ImgPrinter()
-  imprinter('img/flower.jpg')
+  # imprinter = ImgPrinter()
+  # imprinter('img/flower.jpg')
+  # vprinter = VidPrinter()
+  # vprinter('img/totoro.gif', max_width=1000)
