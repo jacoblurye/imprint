@@ -18,7 +18,7 @@ setup(
   name = "imprint",
   packages = ["imprint"],
   entry_points = {
-      "console_scripts": ['imprint = imprint.__main__']
+      "console_scripts": ['imprint = imprint.cli:main']
       },
   version = version,
   description = descr,

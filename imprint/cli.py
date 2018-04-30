@@ -16,11 +16,12 @@ parser.add_argument('--is_gif', help='if true, loop video forever (defaults to t
                     type=bool, default=False)
 args = parser.parse_args()
 
-if is_img(args.file):
-  imprint = ImgPrinter()
-  imprint(args.file, max_width=args.max_width)
-elif is_vid(args.file):
-  vprint = VidPrinter()
-  vprint(args.file, max_width=args.max_width, is_gif=args.is_gif)
-else:
-  raise Exception('%s: file format not supported' % args.file)
+def main():
+  if is_img(args.file):
+    imprint = ImgPrinter()
+    imprint(args.file, max_width=args.max_width)
+  elif is_vid(args.file):
+    vprint = VidPrinter()
+    vprint(args.file, max_width=args.max_width, is_gif=args.is_gif)
+  else:
+    raise Exception('%s: file format not supported' % args.file)
