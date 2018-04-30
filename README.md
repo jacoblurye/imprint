@@ -1,9 +1,10 @@
 ## imprint
 
-Convert images and videos to string representations.
+Convert images and videos to string representations.    
+![text flower](/img/flower_out.png)
 
-For example:
-
+### Usage
+Default image printing works like this.
 ```
 >>> from imprint import ImgPrinter
 >>> imprinter = ImgPrinter()
