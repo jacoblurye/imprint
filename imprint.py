@@ -99,7 +99,7 @@ class VidPrinter(ImgPrinter):
     for frame in vid:
       yield self.img_to_str(frame, max_width)
   
-  def __call__(self, vid, max_width=200, max_frames=1000, framerate=24):
+  def __call__(self, vid, max_width=200, framerate=24):
     if type(vid) == str:
       vinfo = ffprobe(vid)['video']
       height, width = int(vinfo['@height']), int(vinfo['@width'])
@@ -109,7 +109,7 @@ class VidPrinter(ImgPrinter):
       height = vid[0].shape[0]
     max_height = round(height * max_width / width)
     self._delstring = CURSOR_UP_ONE_LINE * max_height
-    vidstr_gen = self.str_to_vid(vid)
+    vidstr_gen = self.str_to_vid(vid, max_width)
     self._play(vidstr_gen, framerate)
 
   def _play(self, vidstr_gen, framerate):
@@ -122,7 +122,5 @@ class VidPrinter(ImgPrinter):
 
 
 if __name__ == '__main__':
-  # imprinter = ImgPrinter()
-  # imprinter('img/flower.jpg', max_width=600)
-  vprinter = VidPrinter()
-  vprinter('local_img/scene1.mp4')
+  imprinter = ImgPrinter()
+  imprinter('img/flower.jpg', max_width=300)
