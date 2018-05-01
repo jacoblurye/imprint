@@ -37,5 +37,5 @@ setup(
   ],
   author = 'Jacob Lurye',
   author_email = 'jlurye96@gmail.com',
-  url = 'https://github.com/jacoblurye/imprint',
+  url = 'https://github.com/jacoblurye/imprint'
 )

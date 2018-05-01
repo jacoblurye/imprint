@@ -7,7 +7,7 @@ Convert images and videos to string representations.
 ```
 $ git clone https://github.com/jacoblurye/imprint.git
 $ cd imprint
-$ python setup.py install
+$ python3 -m pip install .
 ```
 
 ## Usage

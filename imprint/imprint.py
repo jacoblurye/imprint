@@ -67,7 +67,7 @@ class ImgPrinter:
 
     # Decrease image resolution to achieve max_width
     if max_width <= img.shape[1]:
-      max_height = round(bw_img.shape[0] * (max_width / img.shape[1]))
+      max_height = round(bw_img.shape[0] * max_width / bw_img.shape[1])
       smaller_shape = (max_height, max_width)
       bw_img = resize(bw_img, smaller_shape, mode='reflect')
 
