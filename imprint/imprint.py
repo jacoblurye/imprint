@@ -118,6 +118,16 @@ class VidPrinter(ImgPrinter):
       -------
       None
     """
+    # Make the video string generator
+    vidstr_gen = self.str_to_vid(vid, max_width, is_gif)
+
+    # Play back video to terminal
+    self._play(vidstr_gen)
+
+  def str_to_vid(self, vid, max_width=200, is_gif=False):
+    """
+      Generate string representations of a video, frame-by-frame.
+    """
     # Get video metadata and load video if necessary
     if type(vid) == str:
       vinfo = ffprobe(vid)['video']
@@ -131,16 +141,8 @@ class VidPrinter(ImgPrinter):
     max_height = round(height * max_width / width)
     self._delstring = CURSOR_UP_ONE_LINE * max_height
 
-    # Make the video string generator
-    vidstr_gen = self.str_to_vid(vid, max_width, is_gif)
-
-    # Play back video to terminal
-    self._play(vidstr_gen)
-
-  def str_to_vid(self, vid, max_width=200, is_gif=False):
-    """
-      Generate string representations of a video, frame-by-frame.
-    """
+    # Generate video frame by frame, collecting
+    # generated strings if video is a gif
     framelist = []
     for frame in vid:
       frame = self.img_to_str(frame, max_width)
