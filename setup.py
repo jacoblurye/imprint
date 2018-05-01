@@ -32,7 +32,8 @@ setup(
   long_description = long_descr,
   classifiers= [
     'Development Status :: 3 - Alpha',
-    'License :: OSI Approved :: MIT License'
+    'License :: OSI Approved :: MIT License',
+    'Programming Language :: Python :: 3'
   ],
   author = 'Jacob Lurye',
   author_email = 'jlurye96@gmail.com',

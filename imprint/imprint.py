@@ -69,7 +69,7 @@ class ImgPrinter:
     if max_width <= img.shape[1]:
       max_height = round(bw_img.shape[0] * (max_width / img.shape[1]))
       smaller_shape = (max_height, max_width)
-      bw_img = resize(bw_img, smaller_shape, mode='constant')
+      bw_img = resize(bw_img, smaller_shape, mode='reflect')
 
     # Convert pixels to corresponding symbols
     chr_img = self._ptoc_vec(bw_img)
