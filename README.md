@@ -72,9 +72,9 @@ $ imprint --max_width=100 img/flower.jpg
 * `VidPrinter`: for stringifying and displaying video files (and gifs).
 
 These classes support flexible use in other Python scripts. For example:
-```
+```python
 >>> from imprint import ImgPrinter
->>> symbols = u' \u25A0'
+>>> symbols = [u' ', u'\u25A0']
 >>> imprinter = ImgPrinter(symbols)
 >>> str_repr = imprinter.str_to_img('img/flower.jpg')  # get the string representation without printing
 >>> imprinter('img/flower.jpg', max_width=75)          # print the string representation directly
