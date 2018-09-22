@@ -11,7 +11,7 @@ $ python3 -m pip install .
 ```
 
 ## Usage
-### As A CLI
+### Via the CLI
 ```
 Usage: imprint [options] file
 ```
@@ -66,7 +66,7 @@ $ imprint --max_width=100 img/flower.jpg
                                           :::: · ··:        ·++:+:+
                                             ·   ···           ·+::
 ```
-### As A Module
+### Via the API
  The module implements the following classes:
 * `ImgPrinter`: for stringifying and displaying image files (excluding gifs).
 * `VidPrinter`: for stringifying and displaying video files (and gifs).
