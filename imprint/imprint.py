@@ -11,8 +11,6 @@ import itertools
 
 import numpy as np
 from skimage.transform import resize
-from skimage.io import imread
-from skvideo.io import vreader, ffprobe
 
 
 class ImagePrinter:
@@ -58,6 +56,7 @@ class ImagePrinter:
           Convert img into its string representation.
         """
         if type(img) == str:
+            from skimage.io import imread
             img = imread(img)
 
         # Convert color image to black and white,
@@ -91,9 +90,6 @@ class ImagePrinter:
                 return char
             thresh += self._inc
         return char
-
-
-CURSOR_UP_ONE_LINE = '\x1b[1A'
 
 
 class VideoPrinter(ImagePrinter):
@@ -133,16 +129,8 @@ class VideoPrinter(ImagePrinter):
         """
         # Get video metadata and load video if necessary
         if type(vid) == str:
-            vinfo = ffprobe(vid)['video']
-            height, width = int(vinfo['@height']), int(vinfo['@width'])
-            is_gif = vinfo['@codec_name'] == 'gif'
+            from skvideo.io import vreader
             vid = vreader(vid)
-        else:
-            height, width = vid[0].shape[0], vid[0].shape[1]
-
-        # Construct string used for clearing printed frames
-        max_height = round(height * max_width / width)
-        self._delstring = CURSOR_UP_ONE_LINE * max_height
 
         # Generate video frame by frame, collecting
         # generated strings if video is a gif
@@ -163,8 +151,6 @@ class VideoPrinter(ImagePrinter):
           Continuously print string representations of frames.
         """
         for frame in vidstr_gen:
+            # clear terminal window
+            print(chr(27) + "[2J")
             print(frame)
-            self._clear_frame()
-
-    def _clear_frame(self):
-        sys.stdout.write(self._delstring)
