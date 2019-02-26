@@ -10,7 +10,7 @@ import time
 import itertools
 
 import numpy as np
-from skimage.transform import resize
+from cv2 import resize, imread
 
 
 class ImagePrinter:
@@ -56,21 +56,16 @@ class ImagePrinter:
           Convert img into its string representation.
         """
         if type(img) == str:
-            from skimage.io import imread
             img = imread(img)
 
         # Convert color image to black and white,
-        tall_bw_img = img.mean(axis=2) if len(img.shape) == 3 else img
-
-        # Remove every other row to prevent vertical stretching
-        bw_img = tall_bw_img[::2]
+        bw_img = img.mean(axis=2) if len(img.shape) == 3 else img
 
         # Decrease image resolution to achieve max_width
         if max_width <= img.shape[1]:
             max_height = round(bw_img.shape[0] * max_width / bw_img.shape[1])
             smaller_shape = (max_height, max_width)
-            bw_img = resize(bw_img, smaller_shape,
-                            mode='reflect', anti_aliasing=True)
+            bw_img = resize(bw_img, smaller_shape)
 
         # Convert pixels to corresponding symbols
         chr_img = self._ptoc_vec(bw_img)

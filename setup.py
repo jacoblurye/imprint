@@ -13,7 +13,7 @@ version = re.search(
 
 install_requires = [
     'numpy>=1.14.3',
-    'scikit-image>=0.13.1',
+    'opencv-python>=4.0.0.21',
     'scikit-video>=1.1.10'
 ]
 
