@@ -1,4 +1,9 @@
+import os
 import mimetypes
+
+
+def assert_exists(path: str):
+    assert os.path.isfile(path), "File not found: %s" % path
 
 
 def is_image_file(fname):

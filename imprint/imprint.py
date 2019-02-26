@@ -5,63 +5,68 @@ View images and video as printed text.
 
 __version__ = '0.1.0'
 
+from typing import Union, Sequence
+
 import numpy as np
 import cv2
+
+from .util import assert_exists
 
 
 class ImagePrinter:
     """
-      Implements an image-to-string converter.
+      Factory for image-to-ASCII printers.
     """
 
-    def __init__(self, symbols=u' ·:+*@', bitdepth=255):
+    # Pixels are square, but characters in a font are (generally)
+    # taller than they are wide. Vertically squishing images
+    # by this factor roughly offsets this discrepancy.
+    VERTICAL_SQUISH = .6
+
+    def __init__(self, max_width: int, symbols: str = u' ·:+*@', bitdepth: int = 255):
         """
           Initialize an image-printer.
 
-          Parameters
-          ----------
-          symbols : str or str list
-            String representations to use for pixels of increasing brightness.
-          bitdepth : int
-            Bitdepth of the images this printer will consume.
+          Parameters:            
+            max_width : int
+              Restrict width of string representation to max_width characters.
+            symbols : str
+              Characters to use for pixels in order of increasing brightness.
+            bitdepth : int
+              Bitdepth of the images this printer will consume.
         """
+        self.max_width = max_width
         self.symbols = symbols
         self._inc = bitdepth / len(symbols)
         self._ptoc_vec = np.vectorize(self._pixel_to_char)
 
-    def __call__(self, img, max_width=150):
+    def __call__(self, path: str):
         """
-          Print an image to the console.
-          To obtain a string representation directly, use img_to_str.
+          Print an image to stdout.
 
-          Parameters
-          ----------
-          img : string or numpy.ndarray
-            Either a path to an image file or a matrix representing image data.
-          max_width : int
-            Restrict width of string representation to max_width characters.
+          Parameters:
+            path: str
+              A path to an image file.
 
-          Returns
-          -------
-          None
+          Returns:
+            None
         """
-        print(self.img_to_str(img, max_width))
+        assert_exists(path)
+        imdata = cv2.imread(path)
+        print(self._image_to_string(imdata))
 
-    def img_to_str(self, img, max_width=100):
+    def _image_to_string(self, imdata: np.ndarray):
         """
-          Convert img into its string representation.
+          Convert a matrix of image data to an ASCII string.
         """
-        if type(img) == str:
-            img = cv2.imread(img)
-
         # Convert color image to black and white,
-        bw_img = img.mean(axis=2) if len(img.shape) == 3 else img
+        bw_img = imdata.mean(axis=2) if len(imdata.shape) == 3 else imdata
 
         # Decrease image resolution to achieve max_width
-        if max_width <= img.shape[1]:
+        if self.max_width and self.max_width <= imdata.shape[1]:
             max_height = round(
-                bw_img.shape[0] * max_width / bw_img.shape[1] * .6)
-            smaller_shape = (max_width, max_height)
+                bw_img.shape[0] * self.max_width / bw_img.shape[1] * ImagePrinter.VERTICAL_SQUISH)
+            smaller_shape = (self.max_width, max_height)
             bw_img = cv2.resize(bw_img, smaller_shape)
 
         # Convert pixels to corresponding symbols
@@ -72,7 +77,7 @@ class ImagePrinter:
 
         return str_img
 
-    def _pixel_to_char(self, pixel):
+    def _pixel_to_char(self, pixel: int):
         """
           Assuming self.symbols are listed from 'darkest' to 'brightest',
           replace pixel with symbol according to its light intensity.
@@ -87,38 +92,38 @@ class ImagePrinter:
 
 class VideoPrinter(ImagePrinter):
     """
-      Implements an image-to-string converter for watching videos
-      at the command line.
+      Factory for video-to-ASCII printers.
     """
 
-    def __call__(self, vid, max_width=200, is_gif=False):
+    def __call__(self, path: str, loop: Union[bool, None] = None):
         """
-          Continuously print a video's string representation (i.e., watch it).
-          To obtain a generator producing string representations of the video's frames
-          directly, use vid_to_str.
+          Print a video to stdout.
 
-          Parameters
-          ----------
-          vid : string or numpy.ndarray
-            Either a path to a video file or a matrix representing video data.
-          max_width : int
-            Restrict width of string representation to max_width characters.
-          is_gif : bool
-            If true, loop the video forever.
+          Parameters:
+            path : str
+              A path to a video file.
+            loop : bool or None
+              If file is a gif, defaults true unless False is specified.
+              Otherwise, loops the video only if True is specified.
 
-          Returns
-          -------
-          None
+          Returns:
+            None
         """
+        assert_exists(path)
+
+        if loop is None:
+            loop = path.endswith("gif")
+
         # Make the video string generator
-        vidstr_gen = self.str_to_vid(vid, max_width, is_gif)
+        frames = self._gen_video_frames(path, loop)
+        string_frames = self._video_to_string(frames)
 
         # Play back video to terminal
-        self._play(vidstr_gen)
+        self._play(string_frames)
 
-    def video_frames(self, vid, loop):
+    def _gen_video_frames(self, path: str, loop: bool):
         while True:
-            cap = cv2.VideoCapture(vid)
+            cap = cv2.VideoCapture(path)
             while True:
                 success, frame = cap.read()
                 if not success:
@@ -127,26 +132,21 @@ class VideoPrinter(ImagePrinter):
             if not loop:
                 break
 
-    def str_to_vid(self, vid, max_width=200, loop=False):
+    def _video_to_string(self, frames: np.ndarray):
         """
           Generate string representations of a video, frame-by-frame.
         """
-        frames = vid
-        if type(vid) == str:
-            loop = loop or vid.endswith("gif")
-            frames = self.video_frames(vid, loop)
-
         for frame in frames:
-            yield self.img_to_str(frame, max_width)
+            yield self._image_to_string(frame)
 
-    def _play(self, vidstr_gen):
+    def _play(self, string_frames: Sequence[int]):
         """
-          Continuously print string representations of frames.
+          Continuously print ASCII frames.
         """
         # Clear the terminal
         print("\033[2J")
 
-        for frame in vidstr_gen:
-            # Return cursor to home before printing frame
+        for frame in string_frames:
+            # Return cursor to home before printing next frame
             print("\033[H")
             print(frame)
