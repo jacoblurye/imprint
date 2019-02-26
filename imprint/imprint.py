@@ -95,24 +95,22 @@ class VideoPrinter(ImagePrinter):
       Factory for video-to-ASCII printers.
     """
 
-    def __call__(self, path: str, loop: Union[bool, None] = None):
+    def __call__(self, path: str, loop: bool = False):
         """
           Print a video to stdout.
 
           Parameters:
             path : str
               A path to a video file.
-            loop : bool or None
-              If file is a gif, defaults true unless False is specified.
-              Otherwise, loops the video only if True is specified.
+            loop : bool
+              If true, loop file. GIFs always loop.
 
           Returns:
             None
         """
         assert_exists(path)
 
-        if loop is None:
-            loop = path.endswith("gif")
+        loop = loop or path.endswith("gif")
 
         # Make the video string generator
         frames = self._gen_video_frames(path, loop)
