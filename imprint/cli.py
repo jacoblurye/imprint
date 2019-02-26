@@ -16,4 +16,4 @@ args = parser.parse_args()
 
 
 def main():
-    MediaPrinter(args.max_width)(args.file, args.loop)
+    MediaPrinter(args.max_width).print(args.file, args.loop)

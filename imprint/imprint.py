@@ -13,29 +13,35 @@ import cv2
 from .util import assert_exists, is_image_file, is_video_file
 
 
-class MediaPrinter:
-    """
-      Constructs a printer given a path to an image or video file.
-    """
-
+class Printer:
     def __init__(self, max_width: int, symbols: str = u' ·:+*@', bitdepth: int = 255):
         self.max_width = max_width
         self.symbols = symbols
         self.bitdepth = bitdepth
+        self._inc = bitdepth / len(symbols)
 
-    def __call__(self, path: str,  loop: bool = False):
+    def print(self, path: int):
+        raise NotImplementedError()
+
+
+class MediaPrinter(Printer):
+    """
+      Constructs a printer given a path to an image or video file.
+    """
+
+    def print(self, path: str,  loop: bool = False):
         assert_exists(path)
         if is_image_file(path):
             imprint = ImagePrinter(self.max_width)
-            imprint(path)
+            imprint.print(path)
         elif is_video_file(path):
             vprint = VideoPrinter(self.max_width)
-            vprint(path, loop=loop)
+            vprint.print(path, loop=loop)
         else:
             raise Exception('File format not supported: %s' % path)
 
 
-class ImagePrinter:
+class ImagePrinter(Printer):
     """
       Factory for image-to-ASCII printers.
     """
@@ -62,7 +68,7 @@ class ImagePrinter:
         self._inc = bitdepth / len(symbols)
         self._ptoc_vec = np.vectorize(self._pixel_to_char)
 
-    def __call__(self, path: str):
+    def print(self, path: str):
         """
           Print an image to stdout.
 
@@ -117,7 +123,7 @@ class VideoPrinter(ImagePrinter):
       Factory for video-to-ASCII printers.
     """
 
-    def __call__(self, path: str, loop: bool = False):
+    def print(self, path: str, loop: bool = False):
         """
           Print a video to stdout.
 
