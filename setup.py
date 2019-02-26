@@ -13,8 +13,7 @@ version = re.search(
 
 install_requires = [
     'numpy>=1.14.3',
-    'opencv-python>=4.0.0.21',
-    'scikit-video>=1.1.10'
+    'opencv-python>=4.0.0.21'
 ]
 
 descr = 'Convert and display images and videos as string representations.'

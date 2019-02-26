@@ -1,21 +1,26 @@
 # imprint
 
-Convert images and videos to string representations.    
-![text flower](/img/flower_out.png)
+Convert images and videos to ASCII.  
+![text totoro](/img/totoro_out.gif)
 
 ## Installation
+
 ```
 $ git clone https://github.com/jacoblurye/imprint.git
 $ cd imprint
-$ pip3 install .
+$ pip install .
 ```
 
 ## Usage
+
 ### Via the CLI
+
 ```
 Usage: imprint [options] file
 ```
+
 Point the `imprint` command at any image or video file. For example:
+
 ```
 $ imprint --max_width=100 img/flower.jpg
                                            :+*:
@@ -66,12 +71,16 @@ $ imprint --max_width=100 img/flower.jpg
                                           :::: · ··:        ·++:+:+
                                             ·   ···           ·+::
 ```
+
 ### Via the API
- The module implements the following classes:
-* `ImgPrinter`: for stringifying and displaying image files (excluding gifs).
-* `VidPrinter`: for stringifying and displaying video files (and gifs).
+
+The module implements the following classes:
+
+- `ImgPrinter`: for stringifying and displaying image files (excluding gifs).
+- `VidPrinter`: for stringifying and displaying video files (and gifs).
 
 These classes support flexible use in other Python scripts. For example:
+
 ```python
 >>> from imprint import ImgPrinter
 >>> symbols = [u' ', u'\u25A0']

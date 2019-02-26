@@ -5,12 +5,10 @@ View images and video as printed text.
 
 __version__ = '0.1.0'
 
-import sys
 import time
-import itertools
 
 import numpy as np
-from cv2 import resize, imread
+import cv2
 
 
 class ImagePrinter:
@@ -35,7 +33,7 @@ class ImagePrinter:
 
     def __call__(self, img, max_width=150):
         """
-          Print an image to the console. 
+          Print an image to the console.
           To obtain a string representation directly, use img_to_str.
 
           Parameters
@@ -56,16 +54,17 @@ class ImagePrinter:
           Convert img into its string representation.
         """
         if type(img) == str:
-            img = imread(img)
+            img = cv2.imread(img)
 
         # Convert color image to black and white,
         bw_img = img.mean(axis=2) if len(img.shape) == 3 else img
 
         # Decrease image resolution to achieve max_width
         if max_width <= img.shape[1]:
-            max_height = round(bw_img.shape[0] * max_width / bw_img.shape[1])
-            smaller_shape = (max_height, max_width)
-            bw_img = resize(bw_img, smaller_shape)
+            max_height = round(
+                bw_img.shape[0] * max_width / bw_img.shape[1] * .6)
+            smaller_shape = (max_width, max_height)
+            bw_img = cv2.resize(bw_img, smaller_shape)
 
         # Convert pixels to corresponding symbols
         chr_img = self._ptoc_vec(bw_img)
@@ -90,7 +89,7 @@ class ImagePrinter:
 
 class VideoPrinter(ImagePrinter):
     """
-      Implements an image-to-string converter for watching videos 
+      Implements an image-to-string converter for watching videos
       at the command line.
     """
 
@@ -119,34 +118,38 @@ class VideoPrinter(ImagePrinter):
         # Play back video to terminal
         self._play(vidstr_gen)
 
-    def str_to_vid(self, vid, max_width=200, is_gif=False):
+    def video_frames(self, vid, loop):
+        while True:
+            cap = cv2.VideoCapture(vid)
+            while True:
+                success, frame = cap.read()
+                if not success:
+                    break
+                yield frame
+            if not loop:
+                break
+
+    def str_to_vid(self, vid, max_width=200, loop=False):
         """
           Generate string representations of a video, frame-by-frame.
         """
-        # Get video metadata and load video if necessary
+        frames = vid
         if type(vid) == str:
-            from skvideo.io import vreader
-            vid = vreader(vid)
+            loop = loop or vid.endswith("gif")
+            frames = self.video_frames(vid, loop)
 
-        # Generate video frame by frame, collecting
-        # generated strings if video is a gif
-        framelist = []
-        for frame in vid:
-            frame = self.img_to_str(frame, max_width)
-            if is_gif:
-                framelist.append(frame)
-            yield frame
-
-        # Keep looping gifs forever
-        while is_gif:
-            for frame in framelist:
-                yield frame
+        for frame in frames:
+            yield self.img_to_str(frame, max_width)
 
     def _play(self, vidstr_gen):
         """
           Continuously print string representations of frames.
         """
+        # Clear the terminal
+        print("\033[2J")
+
         for frame in vidstr_gen:
-            # clear terminal window
-            print(chr(27) + "[2J")
+            # Return cursor to home before printing frame
+            print("\033[H")
             print(frame)
+            time.sleep(.03)
