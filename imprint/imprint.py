@@ -5,12 +5,34 @@ View images and video as printed text.
 
 __version__ = '0.1.0'
 
-from typing import Union, Sequence
+from typing import Sequence
 
 import numpy as np
 import cv2
 
-from .util import assert_exists
+from .util import assert_exists, is_image_file, is_video_file
+
+
+class MediaPrinter:
+    """
+      Constructs a printer given a path to an image or video file.
+    """
+
+    def __init__(self, max_width: int, symbols: str = u' ·:+*@', bitdepth: int = 255):
+        self.max_width = max_width
+        self.symbols = symbols
+        self.bitdepth = bitdepth
+
+    def __call__(self, path: str,  loop: bool = False):
+        assert_exists(path)
+        if is_image_file(path):
+            imprint = ImagePrinter(self.max_width)
+            imprint(path)
+        elif is_video_file(path):
+            vprint = VideoPrinter(self.max_width)
+            vprint(path, loop=loop)
+        else:
+            raise Exception('File format not supported: %s' % path)
 
 
 class ImagePrinter:

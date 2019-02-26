@@ -4,9 +4,7 @@
 """
 
 from argparse import ArgumentParser
-
-from .util import is_image_file, is_video_file
-from .imprint import ImagePrinter, VideoPrinter
+from .imprint import MediaPrinter
 
 parser = ArgumentParser()
 parser.add_argument('file', help='path to image or video file to display')
@@ -18,11 +16,4 @@ args = parser.parse_args()
 
 
 def main():
-    if is_image_file(args.file):
-        imprint = ImagePrinter(max_width=args.max_width)
-        imprint(args.file)
-    elif is_video_file(args.file):
-        vprint = VideoPrinter(max_width=args.max_width)
-        vprint(args.file, loop=args.loop)
-    else:
-        raise Exception('%s: file format not supported' % args.file)
+    MediaPrinter(args.max_width)(args.file, args.loop)
