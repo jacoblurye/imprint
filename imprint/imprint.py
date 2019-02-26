@@ -5,8 +5,6 @@ View images and video as printed text.
 
 __version__ = '0.1.0'
 
-import time
-
 import numpy as np
 import cv2
 
@@ -152,4 +150,3 @@ class VideoPrinter(ImagePrinter):
             # Return cursor to home before printing frame
             print("\033[H")
             print(frame)
-            time.sleep(.03)
