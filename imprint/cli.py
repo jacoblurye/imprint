@@ -4,7 +4,7 @@
 """
 
 from argparse import ArgumentParser
-from .imprint import MediaPrinter
+from .imprint import ASCIIMedia
 
 parser = ArgumentParser()
 parser.add_argument('file', help='path to image or video file to display')
@@ -16,4 +16,4 @@ args = parser.parse_args()
 
 
 def main():
-    MediaPrinter(args.max_width).print(args.file, args.loop)
+    ASCIIMedia(args.file).print(args.max_width, loop=args.loop)

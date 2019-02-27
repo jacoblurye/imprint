@@ -5,6 +5,7 @@ View images and video as printed text.
 
 __version__ = '0.1.0'
 
+from abc import ABC, abstractmethod
 from typing import Sequence
 
 import numpy as np
@@ -13,35 +14,87 @@ import cv2
 from .util import assert_exists, is_image_file, is_video_file
 
 
-class Printer:
-    def __init__(self, max_width: int, symbols: str = u' ·:+*@', bitdepth: int = 255):
-        self.max_width = max_width
+DEFAULT_MAX_WIDTH = 300
+
+
+class AbstractASCIIMedia(ABC):
+    """
+      A printable piece of visual media.
+    """
+
+    def __init__(self, filepath: str, symbols: str = u' ·:+*@', bitdepth: int = 255):
+        """
+          Initialize new ascii-able media.
+
+          Parameters:
+            filepath : str
+              Path to a media file to make ascii-able.
+            symbols : str
+              Characters to use for pixels, listed in order of increasing "brightness".
+            bitdepth : int
+              Bitdepth of the images this printer will consume.
+        """
+        assert_exists(filepath)
+        self.filepath = filepath
         self.symbols = symbols
         self.bitdepth = bitdepth
-        self._inc = bitdepth / len(symbols)
 
-    def print(self, path: int):
+        # The range of pixel values is split into even buckets.
+        # TODO: explore other bucketing-schemes.
+        self.pixel_value_bucket_size = bitdepth / len(symbols)
+
+        self._validate()
+        self._prepare()
+
+    @abstractmethod
+    def _validate(self):
+        """
+          Subclass-specific validations on input to __init__.
+        """
+        pass
+
+    @abstractmethod
+    def _prepare(self):
+        """
+          Subclass-specific setup that runs at the end of __init__.
+        """
+        pass
+
+    @abstractmethod
+    def print(self, max_width: int = DEFAULT_MAX_WIDTH, **kwargs):
+        """
+          Print media to stdout.
+        """
         raise NotImplementedError()
 
 
-class MediaPrinter(Printer):
-    """
-      Constructs a printer given a path to an image or video file.
-    """
-
-    def print(self, path: str,  loop: bool = False):
-        assert_exists(path)
-        if is_image_file(path):
-            imprint = ImagePrinter(self.max_width)
-            imprint.print(path)
-        elif is_video_file(path):
-            vprint = VideoPrinter(self.max_width)
-            vprint.print(path, loop=loop)
+class ASCIIMedia(AbstractASCIIMedia):
+    def _validate(self):
+        if is_image_file(self.filepath):
+            self._PrinterClass = ASCIIImage
+        elif is_video_file(self.filepath):
+            self._PrinterClass = ASCIIVideo
         else:
-            raise Exception('File format not supported: %s' % path)
+            raise Exception('File format not supported: %s' % self.filepath)
+
+    def _prepare(self):
+        self.printer = self._PrinterClass(
+            self.filepath, self.symbols, self.bitdepth)
+
+    def print(self, max_width: int = DEFAULT_MAX_WIDTH, **kwargs):
+        """
+          Print media to stdout.
+
+          Parameters:
+            max_width: int
+              Maximum permitted width of output string in characters.
+            **kwargs:
+              Additional subclass-specific config.
+        """
+        self.printer.print(max_width, **kwargs)
 
 
-class ImagePrinter(Printer):
+class ASCIIImage(AbstractASCIIMedia):
     """
       Factory for image-to-ASCII printers.
     """
@@ -51,98 +104,89 @@ class ImagePrinter(Printer):
     # by this factor roughly offsets this discrepancy.
     VERTICAL_SQUISH = .6
 
-    def __init__(self, max_width: int, symbols: str = u' ·:+*@', bitdepth: int = 255):
-        """
-          Initialize an image-printer.
+    def _validate(self):
+        assert is_image_file(
+            self.filepath), "Not an image file: %s" % self.filepath
 
-          Parameters:            
-            max_width : int
-              Restrict width of string representation to max_width characters.
-            symbols : str
-              Characters to use for pixels in order of increasing brightness.
-            bitdepth : int
-              Bitdepth of the images this printer will consume.
-        """
-        self.max_width = max_width
-        self.symbols = symbols
-        self._inc = bitdepth / len(symbols)
-        self._ptoc_vec = np.vectorize(self._pixel_to_char)
-
-    def print(self, path: str):
-        """
-          Print an image to stdout.
-
-          Parameters:
-            path: str
-              A path to an image file.
-
-          Returns:
-            None
-        """
-        assert_exists(path)
-        imdata = cv2.imread(path)
-        print(self._image_to_string(imdata))
-
-    def _image_to_string(self, imdata: np.ndarray):
-        """
-          Convert a matrix of image data to an ASCII string.
-        """
-        # Convert color image to black and white,
-        bw_img = imdata.mean(axis=2) if len(imdata.shape) == 3 else imdata
-
-        # Decrease image resolution to achieve max_width
-        if self.max_width and self.max_width <= imdata.shape[1]:
-            max_height = round(
-                bw_img.shape[0] * self.max_width / bw_img.shape[1] * ImagePrinter.VERTICAL_SQUISH)
-            smaller_shape = (self.max_width, max_height)
-            bw_img = cv2.resize(bw_img, smaller_shape)
-
-        # Convert pixels to corresponding symbols
-        chr_img = self._ptoc_vec(bw_img)
-
-        # Compose the full image from matrix of chars
-        str_img = u'\n'.join([u''.join(row) for row in chr_img])
-
-        return str_img
+    def _prepare(self):
+        self._ptoc_vectorized = np.vectorize(self._pixel_to_char)
 
     def _pixel_to_char(self, pixel: int):
         """
           Assuming self.symbols are listed from 'darkest' to 'brightest',
           replace pixel with symbol according to its light intensity.
         """
-        thresh = self._inc
+        thresh = self.pixel_value_bucket_size
         for char in self.symbols:
             if pixel < thresh:
                 return char
-            thresh += self._inc
+            thresh += self.pixel_value_bucket_size
         return char
 
+    def print(self, max_width: int = DEFAULT_MAX_WIDTH, **kwargs):
+        """
+          Print the image to stdout.
 
-class VideoPrinter(ImagePrinter):
+          Parameters:
+            max_width: int
+              Maximum permitted width of output string in characters.
+            **kwargs:
+              Keyword arguments for additional config, currently unused.
+        """
+        imdata = cv2.imread(self.filepath)
+        print(self._image_to_string(imdata, max_width))
+
+    def _image_to_string(self, imdata: np.ndarray, max_width: int):
+        """
+          Convert a matrix of image data to an ASCII string.
+        """
+        # Convert color image to black and white,
+        bw_image = imdata.mean(axis=2) if len(imdata.shape) == 3 else imdata
+
+        # Decrease image resolution to achieve max_width
+        if max_width and max_width <= bw_image.shape[1]:
+            new_height = bw_image.shape[0] * max_width / bw_image.shape[1]
+            new_width = max_width
+        else:
+            new_height = bw_image.shape[0]
+            new_width = bw_image.shape[1]
+        squished_height = round(new_height * ASCIIImage.VERTICAL_SQUISH)
+        new_shape = (new_width, squished_height)
+        bw_image = cv2.resize(bw_image, new_shape)
+
+        # Convert pixels to corresponding symbols
+        chr_img = self._ptoc_vectorized(bw_image)
+
+        # Compose the full image from matrix of chars
+        str_img = u'\n'.join([u''.join(row) for row in chr_img])
+
+        return str_img
+
+
+class ASCIIVideo(ASCIIImage):
     """
       Factory for video-to-ASCII printers.
     """
 
-    def print(self, path: str, loop: bool = False):
+    def _validate(self):
+        assert is_video_file(
+            self.filepath), "Not a video file: %s" % self.filepath
+
+    def print(self,  max_width: int = DEFAULT_MAX_WIDTH, loop: bool = False):
         """
           Print a video to stdout.
 
           Parameters:
-            path : str
+            max_width : str, (default 300)
               A path to a video file.
             loop : bool
               If true, loop file. GIFs always loop.
-
-          Returns:
-            None
         """
-        assert_exists(path)
-
-        loop = loop or path.endswith("gif")
+        loop = loop or self.filepath.endswith("gif")
 
         # Make the video string generator
-        frames = self._gen_video_frames(path, loop)
-        string_frames = self._video_to_string(frames)
+        frames = self._gen_video_frames(self.filepath, loop)
+        string_frames = self._video_to_string(frames, max_width)
 
         # Play back video to terminal
         self._play(string_frames)
@@ -158,12 +202,12 @@ class VideoPrinter(ImagePrinter):
             if not loop:
                 break
 
-    def _video_to_string(self, frames: np.ndarray):
+    def _video_to_string(self, frames: np.ndarray, max_width: int):
         """
           Generate string representations of a video, frame-by-frame.
         """
         for frame in frames:
-            yield self._image_to_string(frame)
+            yield self._image_to_string(frame, max_width)
 
     def _play(self, string_frames: Sequence[int]):
         """
