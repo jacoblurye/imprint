@@ -141,7 +141,7 @@ class ASCIIImage(AbstractASCIIMedia):
           Convert a matrix of image data to an ASCII string.
         """
         # Convert color image to black and white,
-        bw_image = imdata.mean(axis=2) if len(imdata.shape) == 3 else imdata
+        bw_image = cv2.cvtColor(imdata, cv2.COLOR_BGR2GRAY)
 
         # Decrease image resolution to achieve max_width
         if max_width and max_width <= bw_image.shape[1]:
@@ -152,15 +152,15 @@ class ASCIIImage(AbstractASCIIMedia):
             new_width = bw_image.shape[1]
         squished_height = round(new_height * ASCIIImage.VERTICAL_SQUISH)
         new_shape = (new_width, squished_height)
-        bw_image = cv2.resize(bw_image, new_shape)
+        resized_image = cv2.resize(bw_image, new_shape)
 
         # Convert pixels to corresponding symbols
-        chr_img = self._ptoc_vectorized(bw_image)
+        character_matrix = self._ptoc_vectorized(resized_image)
 
         # Compose the full image from matrix of chars
-        str_img = u'\n'.join([u''.join(row) for row in chr_img])
+        image_string = u'\n'.join([u''.join(row) for row in character_matrix])
 
-        return str_img
+        return image_string
 
 
 class ASCIIVideo(ASCIIImage):
